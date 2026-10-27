@@ -1,0 +1,12 @@
+node_modules/
+dist/
+vendor/
+tests/
+docs/
+deploy/
+.env
+.env.local
+.secrets/
+tmp/
+test-results/
+*.log

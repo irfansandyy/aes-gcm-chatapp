@@ -1,0 +1,61 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      PUBLIC_IP: ${PUBLIC_IP:-}
+      KDC_KEYS_FILE: /run/secrets/kdc-keys.json
+      KDC_STRICT_THREE_IPS: ${KDC_STRICT_THREE_IPS:-true}
+      TURN_PUBLIC_IP: ${TURN_PUBLIC_IP:-}
+      TURN_PORT: ${TURN_PORT:-3478}
+      TURN_SECRET_FILE: /run/secrets/turn-secret
+      STUN_URLS: ${STUN_URLS:-}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      MAX_CLIENTS: ${MAX_CLIENTS:-256}
+      MAX_ROOMS: ${MAX_ROOMS:-128}
+      MAX_CLIENTS_PER_IP: ${MAX_CLIENTS_PER_IP:-12}
+      SOCKET_FRAME_RATE: ${SOCKET_FRAME_RATE:-2000}
+    volumes:
+      - ./.secrets/kdc-keys.json:/run/secrets/kdc-keys.json:ro
+      - ./.secrets/turn-secret:/run/secrets/turn-secret:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  turn:
+    image: coturn/coturn:4.6.3
+    profiles: [turn]
+    restart: unless-stopped
+    # Linux host networking keeps ICE relay candidate addresses usable.
+    network_mode: host
+    user: "1000:1000"
+    command: ["-c", "/etc/coturn/turnserver.conf"]
+    volumes:
+      - ./.secrets/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+      - /var/lib/coturn:size=4m,uid=1000,gid=1000,mode=0700
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
+

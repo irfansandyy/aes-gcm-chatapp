@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.agents
+.aws
+.codex
+.secrets
+.env
+.env.*
+!.env.example
+*.pdf
+*.log
+test-results
+playwright-report
+coverage
+docs
+tests
